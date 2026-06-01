@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "author": "FIAP GS 2026/1 - AgroSat Station v2",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht1", "top": -100, "left": 240, "attrs": { "pin": "4" } },
+    { "type": "wokwi-soil-moisture-sensor", "id": "soil1", "top": 60, "left": 240, "attrs": {} },
+    { "type": "wokwi-led", "id": "ledG", "top": -100, "left": -140, "attrs": { "color": "green" } },
+    { "type": "wokwi-led", "id": "ledR", "top": -20, "left": -140, "attrs": { "color": "red" } },
+    { "type": "wokwi-buzzer", "id": "buz1", "top": 60, "left": -140, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r1", "top": -100, "left": -70, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": -20, "left": -70, "attrs": { "value": "220" } },
+    { "type": "wokwi-lcd1602", "id": "lcd1", "top": 180, "left": -60, "attrs": { "pins": "i2c", "address": "0x27" } }
+  ],
+  "connections": [
+    ["esp:3V3",   "dht1:VCC",  "red",    []],
+    ["esp:GND.1", "dht1:GND",  "black",  []],
+    ["esp:D4",    "dht1:SDA",  "green",  []],
+    ["esp:3V3",   "soil1:VCC", "red",    []],
+    ["esp:GND.2", "soil1:GND", "black",  []],
+    ["esp:D34",   "soil1:AO",  "yellow", []],
+    ["esp:D26",   "r1:1",      "green",  []],
+    ["r1:2",      "ledG:A",    "green",  []],
+    ["ledG:K",    "esp:GND.3", "black",  []],
+    ["esp:D27",   "r2:1",      "red",    []],
+    ["r2:2",      "ledR:A",    "red",    []],
+    ["ledR:K",    "esp:GND.4", "black",  []],
+    ["esp:D25",   "buz1:1",    "purple", []],
+    ["buz1:2",    "esp:GND.5", "black",  []],
+    ["esp:D21",   "lcd1:SDA",  "blue",   []],
+    ["esp:D22",   "lcd1:SCL",  "yellow", []],
+    ["esp:3V3",   "lcd1:VCC",  "red",    []],
+    ["esp:GND.6", "lcd1:GND",  "black",  []]
+  ],
+  "dependencies": {}
+}
