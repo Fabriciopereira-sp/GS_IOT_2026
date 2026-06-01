@@ -213,4 +213,111 @@ h1{text-align:center;color:#58a6ff;font-size:1.5rem;margin-bottom:4px}
 .hum  .val{color:#38bdf8}
 .soil .val{color:#a3e635}
 .status-ok{background:#0d2b1f;border-color:#22c55e}
-.status-al
+.status-alert{background:#2b0d0d;border-color:#ef4444;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.status-ok .val{color:#22c55e;font-size:1rem}
+.status-alert .val{color:#ef4444;font-size:1rem}
+.chart-box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px;margin-bottom:16px}
+.chart-box h2{font-size:.85rem;color:#8b949e;margin-bottom:12px;font-weight:400}
+canvas{max-height:180px}
+footer{text-align:center;font-size:.7rem;color:#484f58;margin-top:16px}
+</style>
+</head>
+<body>
+<h1>&#x1F6F0;&#xFE0F; AgroSat Station</h1>
+<p class="sub">Monitoramento de solo via dados satelitais &mdash; FIAP GS 2026/1</p>
+<div class="cards">
+  <div class="card temp"><div class="lbl">Temperatura</div><div class="val">)";
+  html += String(temperature, 1);
+  html += R"(</div><div class="unit">&deg;C</div></div>
+  <div class="card hum"><div class="lbl">Umidade do ar</div><div class="val">)";
+  html += String((int)humidity);
+  html += R"(</div><div class="unit">%</div></div>
+  <div class="card soil"><div class="lbl">Umidade do solo</div><div class="val">)";
+  html += String(soilPct);
+  html += R"(</div><div class="unit">%</div></div>
+  <div class="card status-)";
+  html += stCls;
+  html += R"("><div class="lbl">Status</div><div class="val">)";
+  html += stMsg;
+  html += R"(</div></div>
+</div>
+<div class="chart-box">
+  <h2>Temperatura &deg;C (historico)</h2>
+  <canvas id="cT"></canvas>
+</div>
+<div class="chart-box">
+  <h2>Umidade do solo % (historico)</h2>
+  <canvas id="cS"></canvas>
+</div>
+<footer>Atualiza a cada 5s &nbsp;|&nbsp; ESP32 WebServer &nbsp;|&nbsp; IoT FIAP GS 2026/1</footer>
+<script>
+const tData=)";
+  html += tArr;
+  html += R"(;
+const sData=)";
+  html += sArr;
+  html += R"(;
+const labels=tData.map((_,i)=>i+1);
+const cfg=(label,data,color)=>({
+  type:'line',
+  data:{labels,datasets:[{label,data,borderColor:color,backgroundColor:color+'22',
+    borderWidth:2,pointRadius:2,tension:.3,fill:true}]},
+  options:{responsive:true,plugins:{legend:{display:false}},
+    scales:{x:{display:false},y:{ticks:{color:'#8b949e'},grid:{color:'#21262d'}}}}
+});
+new Chart(document.getElementById('cT'),cfg('Temp',tData,'#f97316'));
+new Chart(document.getElementById('cS'),cfg('Solo',sData,'#a3e635'));
+</script>
+</body></html>)";
+
+  server.send(200, "text/html", html);
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(LED_GREEN,  OUTPUT);
+  pinMode(LED_RED,    OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(LED_GREEN, LOW);
+  digitalWrite(LED_RED,   LOW);
+
+  dht.setup(DHT_PIN, DHTesp::DHT22);
+
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0); lcd.print("AgroSat v2");
+  lcd.setCursor(0, 1); lcd.print("Conectando...");
+
+  WiFi.begin(SSID, PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  Serial.println("\nIP: " + WiFi.localIP().toString());
+
+  lcd.clear();
+  lcd.setCursor(0, 0); lcd.print("IP:");
+  lcd.setCursor(0, 1); lcd.print(WiFi.localIP().toString());
+  delay(2000);
+
+  server.on("/",         handleRoot);
+  server.on("/status",   handleStatus);
+  server.on("/temp",     handleTemp);
+  server.on("/humidity", handleHumidity);
+  server.on("/soil",     handleSoil);
+  server.begin();
+  Serial.println("Servidor iniciado.");
+}
+
+void loop() {
+  server.handleClient();
+  handleAlertEffects();
+
+  if (millis() - lastRead >= 2000) {
+    lastRead = millis();
+    readSensors();
+    updateLCD();
+    Serial.printf("[AgroSat] T:%.1f C  H:%.1f%%  Solo:%d%%  %s\n",
+      temperature, humidity, soilPct,
+      alertActive ? alertMessage.c_str() : "OK");
+  }
+}
