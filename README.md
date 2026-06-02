@@ -3,6 +3,13 @@
 Estação de monitoramento de solo inspirada no uso de dados satelitais para o agronegócio.
 O ESP32 coleta dados ambientais e os disponibiliza via API REST com dashboard web.
 
+## 🔗 Links
+
+| | |
+|---|---|
+| 🔧 Simulação Wokwi | [Abrir projeto](https://wokwi.com/projects/465560212441654273) |
+| 🎥 Vídeo de apresentação | _(adicionar link do YouTube após gravar)_ |
+
 ## 👥 Integrantes — Turma 2TDSPW
 
 | Nome | RM |
@@ -67,13 +74,12 @@ do solo, emite alertas sonoros e visuais e expõe os dados via Wi-Fi.
 
 ## 🚀 Como executar no Wokwi
 
-1. Acesse [wokwi.com](https://wokwi.com) → New Project → ESP32
-2. Substitua o `sketch.ino` pelo conteúdo de `agrosat.ino`
-3. Substitua o `diagram.json` pelo arquivo deste repositório
-4. Clique em **▶ Start Simulation**
-5. Copie o IP exibido no Serial Monitor
-6. Clique em **Open in browser** para ver o dashboard
+1. Acesse o projeto direto: [wokwi.com/projects/465560212441654273](https://wokwi.com/projects/465560212441654273)
+2. Clique em **▶ Start Simulation**
+3. Copie o IP exibido no Serial Monitor
+4. Clique em **Open in browser** para ver o dashboard
 
 ## 🎓 FIAP — Análise e Desenvolvimento de Sistemas
-**Disciplina:** Disruptive Architectures: IoT, IoB & Generative IA
+
+**Disciplina:** Disruptive Architectures: IoT, IoB & Generative IA  
 **Global Solution 2026/1 — Tema: A Economia Espacial**
