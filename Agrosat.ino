@@ -1,31 +1,13 @@
-/*
- * AgroSat Station v2 - Global Solution FIAP 2026/1
- *
- * Componentes:
- *  - DHT22          -> GPIO 4   (entrada 1: temperatura e umidade)
- *  - Soil Moisture  -> GPIO 34  (entrada 2: umidade do solo)
- *  - LED Verde      -> GPIO 26  (saida 1: status normal)
- *  - LED Vermelho   -> GPIO 27  (saida 2: alerta piscante)
- *  - Buzzer         -> GPIO 25  (saida 3: alerta sonoro)
- *  - LCD I2C 16x2   -> SDA 21 / SCL 22
- *
- * Endpoints:
- *  GET /         -> Dashboard com grafico historico
- *  GET /status   -> JSON completo
- *  GET /temp     -> JSON temperatura
- *  GET /humidity -> JSON umidade do ar
- *  GET /soil     -> JSON umidade do solo
- */
-
 #include <WiFi.h>
 #include <WebServer.h>
-#include <DHTesp.h>
+#include <DHT.h>
 #include <LiquidCrystal_I2C.h>
 
 const char* SSID     = "Wokwi-GUEST";
 const char* PASSWORD = "";
 
 #define DHT_PIN     4
+#define DHT_TYPE    DHT22
 #define SOIL_PIN    34
 #define LED_GREEN   26
 #define LED_RED     27
@@ -33,16 +15,15 @@ const char* PASSWORD = "";
 
 #define TEMP_MAX      35.0
 #define HUMIDITY_MIN  30.0
-#define SOIL_DRY      2500
 
-DHTesp            dht;
+DHT               dht(DHT_PIN, DHT_TYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 WebServer         server(80);
 
-float   temperature  = 0;
-float   humidity     = 0;
+float   temperature  = 25.0;
+float   humidity     = 60.0;
 int     soilRaw      = 0;
-int     soilPct      = 0;
+int     soilPct      = 50;
 bool    alertActive  = false;
 String  alertMessage = "OK";
 
@@ -90,10 +71,18 @@ String buildHistoryJSONInt(int* arr) {
   return s;
 }
 
+void lcdPrint(int col, int row, String text, int totalWidth) {
+  lcd.setCursor(col, row);
+  while ((int)text.length() < totalWidth) text += " ";
+  lcd.print(text.substring(0, totalWidth));
+}
+
 void readSensors() {
-  TempAndHumidity data = dht.getTempAndHumidity();
-  if (!isnan(data.temperature)) temperature = data.temperature;
-  if (!isnan(data.humidity))    humidity    = data.humidity;
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+
+  if (!isnan(t)) temperature = t;
+  if (!isnan(h)) humidity    = h;
 
   soilRaw = analogRead(SOIL_PIN);
   soilPct = map(soilRaw, 4095, 0, 0, 100);
@@ -136,22 +125,16 @@ void handleAlertEffects() {
 }
 
 void updateLCD() {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("T:");
-  lcd.print(temperature, 1);
-  lcd.print("C U:");
-  lcd.print((int)humidity);
-  lcd.print("%");
-  lcd.setCursor(0, 1);
+  String linha0 = "T:" + String(temperature, 1) + "C U:" + String((int)humidity) + "%";
+  lcdPrint(0, 0, linha0, 16);
+
+  String linha1;
   if (alertActive) {
-    lcd.print("!");
-    lcd.print(alertMessage.substring(0, 15));
+    linha1 = "!" + alertMessage;
   } else {
-    lcd.print("Solo:");
-    lcd.print(soilPct);
-    lcd.print("% OK");
+    linha1 = "Solo:" + String(soilPct) + "% OK";
   }
+  lcdPrint(0, 1, linha1, 16);
 }
 
 void handleStatus() {
@@ -283,7 +266,7 @@ void setup() {
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_RED,   LOW);
 
-  dht.setup(DHT_PIN, DHTesp::DHT22);
+  dht.begin();
 
   lcd.init();
   lcd.backlight();
@@ -312,7 +295,7 @@ void loop() {
   server.handleClient();
   handleAlertEffects();
 
-  if (millis() - lastRead >= 2000) {
+  if (millis() - lastRead >= 1000) {
     lastRead = millis();
     readSensors();
     updateLCD();
