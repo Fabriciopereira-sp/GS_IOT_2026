@@ -8,7 +8,7 @@ O ESP32 coleta dados ambientais e os disponibiliza via API REST com dashboard we
 | | |
 |---|---|
 | 🔧 Simulação Wokwi | [Abrir projeto](https://wokwi.com/projects/465560212441654273) |
-| 🎥 Vídeo de apresentação | _(adicionar link do YouTube após gravar)_ |
+| 🎥 Vídeo de apresentação |https://youtu.be/yA2IxpIvW2A|
 
 ## 👥 Integrantes — Turma 2TDSPW
 
